@@ -1,4 +1,4 @@
-use std::{fs, os::windows::prelude::OsStrExt};
+use std::{fs, os::windows::prelude::OsStrExt, ops::Index};
 
 use clap::value_parser;
 use windows::{
@@ -55,14 +55,14 @@ unsafe fn injection(process_id: u32, path: &Vec<u16>) {
 fn main() {
     let cmd = clap::Command::new("Inject DLL")
         .group(clap::ArgGroup::new("process").required(true))
-        .arg(clap::Arg::new("name").short('n').group("process"))
-        .arg(clap::Arg::new("pid").short('p').value_parser(value_parser!(usize)).group("process"))
-        .arg(clap::Arg::new("dll").short('d').required(true))
+        .arg(clap::Arg::new("dll").required(true))
+        .arg(clap::Arg::new("name").short('n').help("Process Name").group("process"))
+        .arg(clap::Arg::new("pid").short('p').help("Process ID").value_parser(value_parser!(usize)).group("process"))
         .get_matches();
     let path = cmd.get_one::<String>("dll").unwrap();
     let path = fs::canonicalize(path).unwrap();
     if !path.is_file() {
-        panic!("Path {:?} is Not a File", path)
+        panic!("Path {path:?} is Not a File")
     }
 
     let mut path: Vec<_> = path.as_os_str().encode_wide().collect();
